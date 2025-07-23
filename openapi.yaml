@@ -1,0 +1,1230 @@
+openapi: 3.0.3
+info:
+  title: Font Group Manager API
+  description: A comprehensive font management system API for uploading fonts and creating font groups
+  version: 1.0.0
+  contact:
+    name: Font Group Manager
+    email: support@fontmanager.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:9000/api
+    description: Development server
+  - url: https://api.fontmanager.com/api
+    description: Production server
+
+tags:
+  - name: Health
+    description: API health check endpoints
+  - name: Fonts
+    description: Font management operations
+  - name: Font Groups
+    description: Font group management operations
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Check if the API is running and healthy
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /fonts/upload:
+    post:
+      tags:
+        - Fonts
+      summary: Upload a font file
+      description: Upload a TTF font file to the system
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                font:
+                  type: string
+                  format: binary
+                  description: TTF font file (max 5MB)
+              required:
+                - font
+      responses:
+        '201':
+          description: Font uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Font'
+        '400':
+          description: Bad request - invalid file or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: File too large (>5MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Invalid TTF file format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /fonts/validate:
+    post:
+      tags:
+        - Fonts
+      summary: Validate font file before upload
+      description: Validate a TTF font file without saving it to the system
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                font:
+                  type: string
+                  format: binary
+                  description: TTF font file to validate
+              required:
+                - font
+      responses:
+        '200':
+          description: Font validation result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FontValidation'
+        '400':
+          description: Invalid file format or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /fonts:
+    get:
+      tags:
+        - Fonts
+      summary: Get all fonts
+      description: Retrieve a list of all uploaded fonts
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of fonts per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Fonts retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedFonts'
+
+  /fonts/{id}:
+    get:
+      tags:
+        - Fonts
+      summary: Get font by ID
+      description: Retrieve a specific font by its ID
+      parameters:
+        - $ref: '#/components/parameters/FontId'
+      responses:
+        '200':
+          description: Font retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Font'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Fonts
+      summary: Delete a font
+      description: Delete a font file and remove it from the system
+      parameters:
+        - $ref: '#/components/parameters/FontId'
+      responses:
+        '200':
+          description: Font deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /fonts/{id}/preview:
+    get:
+      tags:
+        - Fonts
+      summary: Get font preview
+      description: Generate a preview for the font with custom text
+      parameters:
+        - $ref: '#/components/parameters/FontId'
+        - name: text
+          in: query
+          description: Text to display in the preview
+          schema:
+            type: string
+            default: "Example Style"
+            maxLength: 100
+        - name: size
+          in: query
+          description: Font size for preview
+          schema:
+            type: integer
+            minimum: 12
+            maximum: 72
+            default: 24
+      responses:
+        '200':
+          description: Font preview generated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FontPreview'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /fonts/bulk-delete:
+    delete:
+      tags:
+        - Fonts
+      summary: Delete multiple fonts
+      description: Delete multiple font files in a single request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkDeleteFontsDto'
+      responses:
+        '200':
+          description: Fonts deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BulkDeleteResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          description: Some fonts not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          notFound:
+                            type: array
+                            items:
+                              type: string
+                              format: uuid
+
+  /font-groups:
+    post:
+      tags:
+        - Font Groups
+      summary: Create a font group
+      description: |
+        Create a new font group with selected fonts. Fonts can be provided in three ways:
+        1. As existing font IDs (fontIds)
+        2. As complete font data with files (fonts array)
+        3. As a mix of existing font IDs and new font data (mixedFonts)
+        
+        For options 2 and 3, font files should be uploaded as multipart form data.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Font group name
+                description:
+                  type: string
+                  description: Optional description
+                fontIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of existing font IDs
+                fonts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      filename:
+                        type: string
+                      originalName:
+                        type: string
+                      fontFamily:
+                        type: string
+                      fontStyle:
+                        type: string
+                      file:
+                        type: string
+                        format: binary
+                mixedFonts:
+                  type: object
+                  properties:
+                    existingFontIds:
+                      type: array
+                      items:
+                        type: string
+                    newFonts:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          filename:
+                            type: string
+                          originalName:
+                            type: string
+                          fontFamily:
+                            type: string
+                          fontStyle:
+                            type: string
+                          file:
+                            type: string
+                            format: binary
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Font group created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CreateFontGroupResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+    get:
+      tags:
+        - Font Groups
+      summary: Get all font groups
+      description: Retrieve a list of all font groups with optional pagination and font details
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of font groups per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: include_fonts
+          in: query
+          description: Include full font details in the response
+          required: false
+          schema:
+            type: boolean
+            default: false
+#        - name: search
+#          in: query
+#          description: Search font groups by name or description
+#          required: false
+#          schema:
+#            type: string
+#            maxLength: 100
+#        - name: tags
+#          in: query
+#          description: Filter by tags (comma-separated)
+#          required: false
+#          schema:
+#            type: string
+#            maxLength: 200
+      responses:
+        '200':
+          description: Font groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FontGroupsResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /font-groups/{id}:
+    get:
+      tags:
+        - Font Groups
+      summary: Get font group by ID
+      description: Retrieve a specific font group with its associated fonts
+      parameters:
+        - $ref: '#/components/parameters/FontGroupId'
+      responses:
+        '200':
+          description: Font group retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FontGroupWithFonts'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Font Groups
+      summary: Update a font group
+      description: |
+        Update an existing font group. Fonts can be updated using the same approaches as creation:
+        1. As existing font IDs (fontIds)
+        2. As complete font data with files (fonts array)
+        3. As a mix of existing font IDs and new font data (mixedFonts)
+        
+        For options 2 and 3, font files should be uploaded as multipart form data.
+      parameters:
+        - $ref: '#/components/parameters/FontGroupId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Font group name
+                description:
+                  type: string
+                  description: Optional description
+                fontIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of existing font IDs
+                fonts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      filename:
+                        type: string
+                      originalName:
+                        type: string
+                      fontFamily:
+                        type: string
+                      fontStyle:
+                        type: string
+                      file:
+                        type: string
+                        format: binary
+                mixedFonts:
+                  type: object
+                  properties:
+                    existingFontIds:
+                      type: array
+                      items:
+                        type: string
+                    newFonts:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          filename:
+                            type: string
+                          originalName:
+                            type: string
+                          fontFamily:
+                            type: string
+                          fontStyle:
+                            type: string
+                          file:
+                            type: string
+                            format: binary
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Font group updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FontGroup'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Font Groups
+      summary: Delete a font group
+      description: Delete a font group from the system
+      parameters:
+        - $ref: '#/components/parameters/FontGroupId'
+      responses:
+        '200':
+          description: Font group deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /font-groups/bulk-delete:
+    delete:
+      tags:
+        - Font Groups
+      summary: Delete multiple font groups
+      description: Delete multiple font groups in a single request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkDeleteFontGroupsDto'
+      responses:
+        '200':
+          description: Font groups deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BulkDeleteResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+        message:
+          type: string
+          description: Human-readable message about the operation
+        data:
+          type: object
+          description: Response data (varies by endpoint)
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+      required:
+        - success
+        - message
+        - timestamp
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Error message
+        error:
+          type: string
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - success
+        - message
+        - timestamp
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Validation failed"
+        error:
+          type: string
+          description: JSON string containing validation errors
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - success
+        - message
+        - timestamp
+
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Font Group Manager API is running"
+        timestamp:
+          type: string
+          format: date-time
+          description: Current timestamp
+        version:
+          type: string
+          example: "1.0.0"
+        uptime:
+          type: string
+          description: Server uptime
+      required:
+        - success
+        - message
+        - timestamp
+
+    Font:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique font identifier
+        filename:
+          type: string
+          description: Generated filename on the server
+        originalName:
+          type: string
+          description: Original filename when uploaded
+        path:
+          type: string
+          description: File path on the server
+        fontFamily:
+          type: string
+          description: Extracted font family name from TTF file
+        fontStyle:
+          type: string
+          description: Font style (normal, italic, bold, etc.)
+        isValid:
+          type: boolean
+          description: Whether the TTF file is valid and parseable
+        uploadDate:
+          type: string
+          format: date-time
+          description: When the font was uploaded
+        size:
+          type: integer
+          minimum: 1
+          description: File size in bytes
+        checksum:
+          type: string
+          description: File checksum for integrity verification
+      required:
+        - id
+        - filename
+        - originalName
+        - path
+        - fontFamily
+        - isValid
+        - uploadDate
+        - size
+
+    FontValidation:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          description: Whether the font file is valid
+        fontFamily:
+          type: string
+          description: Extracted font family name
+        fontStyle:
+          type: string
+          description: Font style information
+        size:
+          type: integer
+          description: File size in bytes
+        errors:
+          type: array
+          items:
+            type: string
+          description: List of validation errors if any
+        warnings:
+          type: array
+          items:
+            type: string
+          description: List of validation warnings if any
+      required:
+        - isValid
+        - size
+
+    FontPreview:
+      type: object
+      properties:
+        fontFamily:
+          type: string
+          description: Font family name for CSS
+        cssUrl:
+          type: string
+          description: URL to CSS file for font usage
+        previewUrl:
+          type: string
+          description: URL to preview image
+        base64Preview:
+          type: string
+          description: Base64 encoded preview image
+        text:
+          type: string
+          description: Text used for preview
+        fontSize:
+          type: integer
+          description: Font size used for preview
+      required:
+        - fontFamily
+        - text
+        - fontSize
+
+    PaginatedFonts:
+      type: object
+      properties:
+        fonts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Font'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - fonts
+        - pagination
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+        limit:
+          type: integer
+          minimum: 1
+          description: Items per page
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+        hasNext:
+          type: boolean
+          description: Whether there are more pages
+        hasPrev:
+          type: boolean
+          description: Whether there are previous pages
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+        - hasNext
+        - hasPrev
+
+    FontGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique font group identifier
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Font group name
+        description:
+          type: string
+          maxLength: 500
+          description: Optional description of the font group
+        fontIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 10
+          description: Array of font IDs in this group
+        fontCount:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Number of fonts in the group
+        createdDate:
+          type: string
+          format: date-time
+          description: When the font group was created
+        updatedDate:
+          type: string
+          format: date-time
+          description: When the font group was last updated
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          description: Optional tags for categorization
+      required:
+        - id
+        - name
+        - fontIds
+        - fontCount
+        - createdDate
+
+    FontGroupSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique font group identifier
+        name:
+          type: string
+          description: Font group name
+        description:
+          type: string
+          description: Optional description of the font group
+        fontCount:
+          type: integer
+          minimum: 1
+          description: Number of fonts in the group
+        createdDate:
+          type: string
+          format: date-time
+          description: When the font group was created
+        updatedDate:
+          type: string
+          format: date-time
+          description: When the font group was last updated
+        tags:
+          type: array
+          items:
+            type: string
+          description: Optional tags for categorization
+      required:
+        - id
+        - name
+        - fontCount
+        - createdDate
+
+    FontGroupWithFonts:
+      allOf:
+        - $ref: '#/components/schemas/FontGroup'
+        - type: object
+          properties:
+            fonts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Font'
+              description: Full font objects for the fonts in this group
+          required:
+            - fonts
+
+    FontGroupsResponse:
+      type: object
+      properties:
+        fontGroups:
+          type: array
+          items:
+            anyOf:
+              - $ref: '#/components/schemas/FontGroupSummary'
+              - $ref: '#/components/schemas/FontGroupWithFonts'
+          description: Array of font groups (with or without full font details based on include_fonts parameter)
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        filters:
+          type: object
+          properties:
+            search:
+              type: string
+              description: Applied search filter
+            tags:
+              type: array
+              items:
+                type: string
+              description: Applied tag filters
+          description: Applied filters in the request
+      required:
+        - fontGroups
+        - pagination
+
+    CreateFontGroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        fontIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        fontCount:
+          type: integer
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        createdFonts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              filename:
+                type: string
+              originalName:
+                type: string
+              fontFamily:
+                type: string
+              fontStyle:
+                type: string
+      required:
+        - id
+        - name
+        - fontIds
+        - fontCount
+        - createdDate
+
+    FontDataForGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Existing font ID (if applicable)
+        filename:
+          type: string
+          description: Generated filename for new fonts
+        originalName:
+          type: string
+          description: Original filename when uploaded
+        fontFamily:
+          type: string
+          description: Font family name
+        fontStyle:
+          type: string
+          description: Font style (normal, italic, bold, etc.)
+        mimetype:
+          type: string
+          description: Font file MIME type
+        size:
+          type: integer
+          description: File size in bytes
+      required:
+        - filename
+        - originalName
+        - fontFamily
+        - fontStyle
+
+    CreateFontGroupDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        fontIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        fonts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FontDataForGroup'
+        mixedFonts:
+          type: object
+          properties:
+            existingFontIds:
+              type: array
+              items:
+                type: string
+                format: uuid
+            newFonts:
+              type: array
+              items:
+                $ref: '#/components/schemas/FontDataForGroup'
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+      required:
+        - name
+
+    UpdateFontGroupDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        fontIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        fonts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FontDataForGroup'
+        mixedFonts:
+          type: object
+          properties:
+            existingFontIds:
+              type: array
+              items:
+                type: string
+                format: uuid
+            newFonts:
+              type: array
+              items:
+                $ref: '#/components/schemas/FontDataForGroup'
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+
+    BulkDeleteFontsDto:
+      type: object
+      properties:
+        fontIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 50
+          description: Array of font IDs to delete
+        force:
+          type: boolean
+          default: false
+          description: Force deletion even if fonts are used in groups
+      required:
+        - fontIds
+
+    BulkDeleteFontGroupsDto:
+      type: object
+      properties:
+        fontGroupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 50
+          description: Array of font group IDs to delete
+      required:
+        - fontGroupIds
+
+    BulkDeleteResult:
+      type: object
+      properties:
+        deleted:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of successfully deleted items
+        failed:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              reason:
+                type: string
+          description: IDs and reasons for items that failed to delete
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total items requested for deletion
+            deleted:
+              type: integer
+              description: Number of successfully deleted items
+            failed:
+              type: integer
+              description: Number of items that failed to delete
+      required:
+        - deleted
+        - failed
+        - summary
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  parameters:
+    FontId:
+      name: id
+      in: path
+      required: true
+      description: Font ID
+      schema:
+        type: string
+        format: uuid
+
+    FontGroupId:
+      name: id
+      in: path
+      required: true
+      description: Font group ID
+      schema:
+        type: string
+        format: uuid
+
+security: []
+
+externalDocs:
+  description: Find out more about Font Group Manager
+  url: https://github.com/your-repo/font-group-manager

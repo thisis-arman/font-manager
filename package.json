@@ -1,0 +1,28 @@
+{
+  "name": "font-group-manager-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "packageManager": "yarn@4.9.2",
+  "scripts": {
+    "build": "tsc",
+    "start": "node -r tsconfig-paths/register dist/index.js",
+    "dev": "nodemon --exec \"ts-node -r tsconfig-paths/register src/index.ts\"",
+    "clean": "rimraf dist",
+    "vercel-build": "yarn build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "nodemon": "^3.1.10",
+    "rimraf": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.0",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0"
+  }
+}

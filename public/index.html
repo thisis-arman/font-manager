@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Group Manager API v1.0.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .version {
+            color: #6c757d;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .description {
+            color: #495057;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .servers {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+
+        .servers h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .server {
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .server-url {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+
+        .server-desc {
+            color: #6c757d;
+        }
+
+        .section {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        .endpoint {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .endpoint:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .method {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-right: 12px;
+            text-transform: uppercase;
+        }
+
+        .method.get { background: #d4edda; color: #155724; }
+        .method.post { background: #fff3cd; color: #856404; }
+        .method.put { background: #d1ecf1; color: #0c5460; }
+        .method.delete { background: #f8d7da; color: #721c24; }
+
+        .endpoint-path {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .endpoint-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 6px;
+        }
+
+        .endpoint-description {
+            color: #6c757d;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .responses {
+            margin-top: 15px;
+        }
+
+        .responses-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .response {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .status-code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 10px;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .status-200 { background: #d4edda; color: #155724; }
+        .status-201 { background: #d4edda; color: #155724; }
+        .status-400 { background: #f8d7da; color: #721c24; }
+        .status-404 { background: #f8d7da; color: #721c24; }
+        .status-413 { background: #f8d7da; color: #721c24; }
+        .status-422 { background: #f8d7da; color: #721c24; }
+        .status-500 { background: #f8d7da; color: #721c24; }
+
+        .response-description {
+            color: #495057;
+            flex: 1;
+        }
+
+        .parameters {
+            margin-top: 15px;
+        }
+
+        .parameters-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .parameter {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .param-name {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .param-type {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .param-desc {
+            color: #495057;
+            margin-top: 4px;
+        }
+
+        .request-body {
+            margin-top: 15px;
+        }
+
+        .request-body-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .content-type {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #495057;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .contact-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .contact-info p {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .license {
+            display: inline-block;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .license:hover {
+            text-decoration: underline;
+        }
+
+        .toc {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toc h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Font Group Manager API</h1>
+        <div class="version">Version 1.0.0</div>
+        <div class="description">A comprehensive font management system API for uploading fonts and creating font groups</div>
+
+        <div class="servers">
+            <h3>Servers</h3>
+            <div class="server">
+                <span class="server-url">http://localhost:9000/api</span>
+                <span class="server-desc">Development server</span>
+            </div>
+            <div class="server">
+                <span class="server-url">https://api.fontmanager.com/api</span>
+                <span class="server-desc">Production server</span>
+            </div>
+        </div>
+
+        <div class="contact-info">
+            <h4>Contact Information</h4>
+            <p><strong>Support:</strong> support@fontmanager.com</p>
+            <p><strong>License:</strong> <a href="https://opensource.org/licenses/MIT" class="license">MIT License</a></p>
+        </div>
+    </header>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#health">Health Check</a></li>
+            <li><a href="#fonts">Font Management</a></li>
+            <li><a href="#font-groups">Font Group Management</a></li>
+        </ul>
+    </div>
+
+    <div class="section" id="health">
+        <div class="section-header">
+            <div class="section-title">Health Check</div>
+        </div>
+        <div class="section-content">
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/health</span>
+                </div>
+                <div class="endpoint-title">Health check endpoint</div>
+                <div class="endpoint-description">Check if the API is running and healthy</div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">API is healthy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="fonts">
+        <div class="section-header">
+            <div class="section-title">Font Management</div>
+        </div>
+        <div class="section-content">
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint-path">/fonts/upload</span>
+                </div>
+                <div class="endpoint-title">Upload a font file</div>
+                <div class="endpoint-description">Upload a TTF font file to the system (max 5MB)</div>
+
+                <div class="request-body">
+                    <div class="request-body-title">Request Body:</div>
+                    <div class="content-type">multipart/form-data</div>
+                    <div class="parameter">
+                        <div class="param-name">font</div>
+                        <div class="param-type">binary (required)</div>
+                        <div class="param-desc">TTF font file</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-201">201</span>
+                        <span class="response-description">Font uploaded successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-400">400</span>
+                        <span class="response-description">Bad request - invalid file or validation error</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-413">413</span>
+                        <span class="response-description">File too large (>5MB)</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-422">422</span>
+                        <span class="response-description">Invalid TTF file format</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint-path">/fonts/validate</span>
+                </div>
+                <div class="endpoint-title">Validate font file before upload</div>
+                <div class="endpoint-description">Validate a TTF font file without saving it to the system</div>
+
+                <div class="request-body">
+                    <div class="request-body-title">Request Body:</div>
+                    <div class="content-type">multipart/form-data</div>
+                    <div class="parameter">
+                        <div class="param-name">font</div>
+                        <div class="param-type">binary (required)</div>
+                        <div class="param-desc">TTF font file to validate</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font validation result</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-400">400</span>
+                        <span class="response-description">Invalid file format or validation error</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/fonts</span>
+                </div>
+                <div class="endpoint-title">Get all fonts</div>
+                <div class="endpoint-description">Retrieve a list of all uploaded fonts with pagination</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Query Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">page</span>
+                        <span class="param-type">integer (optional, default: 1)</span>
+                        <div class="param-desc">Page number for pagination</div>
+                    </div>
+                    <div class="parameter">
+                        <span class="param-name">limit</span>
+                        <span class="param-type">integer (optional, default: 20, max: 100)</span>
+                        <div class="param-desc">Number of fonts per page</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Fonts retrieved successfully</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/fonts/{id}</span>
+                </div>
+                <div class="endpoint-title">Get font by ID</div>
+                <div class="endpoint-description">Retrieve a specific font by its ID</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Path Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">id</span>
+                        <span class="param-type">UUID (required)</span>
+                        <div class="param-desc">Font identifier</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font retrieved successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-404">404</span>
+                        <span class="response-description">Font not found</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/fonts/{id}/preview</span>
+                </div>
+                <div class="endpoint-title">Get font preview</div>
+                <div class="endpoint-description">Generate a preview for the font with custom text</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">id</span>
+                        <span class="param-type">UUID (path, required)</span>
+                        <div class="param-desc">Font identifier</div>
+                    </div>
+                    <div class="parameter">
+                        <span class="param-name">text</span>
+                        <span class="param-type">string (query, optional, default: "Example Style")</span>
+                        <div class="param-desc">Text to display in the preview (max 100 chars)</div>
+                    </div>
+                    <div class="parameter">
+                        <span class="param-name">size</span>
+                        <span class="param-type">integer (query, optional, default: 24)</span>
+                        <div class="param-desc">Font size for preview (12-72)</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font preview generated successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-404">404</span>
+                        <span class="response-description">Font not found</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint-path">/fonts/{id}</span>
+                </div>
+                <div class="endpoint-title">Delete a font</div>
+                <div class="endpoint-description">Delete a font file and remove it from the system</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Path Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">id</span>
+                        <span class="param-type">UUID (required)</span>
+                        <div class="param-desc">Font identifier</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font deleted successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-404">404</span>
+                        <span class="response-description">Font not found</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint-path">/fonts/bulk-delete</span>
+                </div>
+                <div class="endpoint-title">Delete multiple fonts</div>
+                <div class="endpoint-description">Delete multiple font files in a single request (max 50 fonts)</div>
+
+                <div class="request-body">
+                    <div class="request-body-title">Request Body:</div>
+                    <div class="content-type">application/json</div>
+                    <div class="parameter">
+                        <div class="param-name">fontIds</div>
+                        <div class="param-type">array of UUIDs (required, 1-50 items)</div>
+                        <div class="param-desc">Array of font IDs to delete</div>
+                    </div>
+                    <div class="parameter">
+                        <div class="param-name">force</div>
+                        <div class="param-type">boolean (optional, default: false)</div>
+                        <div class="param-desc">Force deletion even if fonts are used in groups</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Fonts deleted successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-400">400</span>
+                        <span class="response-description">Validation error</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="font-groups">
+        <div class="section-header">
+            <div class="section-title">Font Group Management</div>
+        </div>
+        <div class="section-content">
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method post">POST</span>
+                    <span class="endpoint-path">/font-groups</span>
+                </div>
+                <div class="endpoint-title">Create a font group</div>
+                <div class="endpoint-description">
+                    <p>Create a new font group with selected fonts. Fonts can be provided in three ways:</p>
+                    <ol>
+                        <li><strong>As existing font IDs (fontIds)</strong> - Provide an array of already uploaded font IDs</li>
+                        <li><strong>As complete font data with files (fonts array)</strong> - Upload new fonts with their metadata</li>
+                        <li><strong>As a mix of existing font IDs and new font data (mixedFonts)</strong> - Combine existing fonts with new uploads</li>
+                    </ol>
+                    <p><strong>Note:</strong> For options 2 and 3, font files should be uploaded as multipart form data.</p>
+                </div>
+
+                <div class="request-body">
+                    <div class="request-body-title">Request Body:</div>
+                    <div class="content-type">multipart/form-data</div>
+
+                    <div class="parameter">
+                        <div class="param-name">name</div>
+                        <div class="param-type">string (required, 1-100 chars)</div>
+                        <div class="param-desc">Font group name</div>
+                    </div>
+
+                    <div class="parameter">
+                        <div class="param-name">description</div>
+                        <div class="param-type">string (optional, max 500 chars)</div>
+                        <div class="param-desc">Optional description</div>
+                    </div>
+
+                    <div class="parameter">
+                        <div class="param-name">fontIds</div>
+                        <div class="param-type">array of UUIDs (1-10 items)</div>
+                        <div class="param-desc">Array of existing font IDs (Option 1)</div>
+                        <div class="param-example">
+                            <strong>Example:</strong>
+                            <pre>["550e8400-e29b-41d4-a716-446655440000", "550e8400-e29b-41d4-a716-446655440001"]</pre>
+                        </div>
+                    </div>
+
+                    <div class="parameter">
+                        <div class="param-name">fonts</div>
+                        <div class="param-type">array of objects (Option 2)</div>
+                        <div class="param-desc">New fonts to upload with metadata</div>
+                        <div class="param-example">
+                            <strong>Example:</strong>
+                            <pre>[
+  {
+    "filename": "font1.ttf",
+    "originalName": "MyFont-Regular.ttf",
+    "fontFamily": "MyFont",
+    "fontStyle": "Regular",
+    "file": (binary data)
+  },
+  {
+    "filename": "font2.ttf",
+    "originalName": "MyFont-Bold.ttf",
+    "fontFamily": "MyFont",
+    "fontStyle": "Bold",
+    "file": (binary data)
+  }
+]</pre>
+                        </div>
+                    </div>
+
+                    <div class="parameter">
+                        <div class="param-name">mixedFonts</div>
+                        <div class="param-type">object (Option 3)</div>
+                        <div class="param-desc">Mix of existing and new fonts</div>
+                        <div class="param-example">
+                            <strong>Example:</strong>
+                            <pre>{
+  "existingFontIds": ["550e8400-e29b-41d4-a716-446655440000"],
+  "newFonts": [
+    {
+      "filename": "newfont.ttf",
+      "originalName": "NewFont-Italic.ttf",
+      "fontFamily": "NewFont",
+      "fontStyle": "Italic",
+      "file": (binary data)
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="parameter">
+                        <div class="param-name">tags</div>
+                        <div class="param-type">array of strings (optional)</div>
+                        <div class="param-desc">Optional tags for categorization</div>
+                        <div class="param-example">
+                            <strong>Example:</strong>
+                            <pre>["header-fonts", "brand-fonts"]</pre>
+                        </div>
+                    </div>
+
+                    <div class="parameter">
+                        <div class="param-name">Notes:</div>
+                        <div class="param-desc">
+                            <ul>
+                                <li>You must use exactly one of these three options: fontIds, fonts, or mixedFonts</li>
+                                <li>For options involving file uploads (fonts and mixedFonts.newFonts), the request must be sent as multipart/form-data</li>
+                                <li>Each font group can contain 1-10 fonts total</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-201">201</span>
+                        <span class="response-description">Font group created successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-400">400</span>
+                        <span class="response-description">Validation error</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/font-groups</span>
+                </div>
+                <div class="endpoint-title">Get all font groups</div>
+                <div class="endpoint-description">Retrieve a list of all font groups with optional pagination and font details</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Query Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">page</span>
+                        <span class="param-type">integer (optional, default: 1)</span>
+                        <div class="param-desc">Page number for pagination</div>
+                    </div>
+                    <div class="parameter">
+                        <span class="param-name">limit</span>
+                        <span class="param-type">integer (optional, default: 20, max: 100)</span>
+                        <div class="param-desc">Number of font groups per page</div>
+                    </div>
+                    <div class="parameter">
+                        <span class="param-name">include_fonts</span>
+                        <span class="param-type">boolean (optional, default: false)</span>
+                        <div class="param-desc">Include full font details in the response</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font groups retrieved successfully</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-path">/font-groups/{id}</span>
+                </div>
+                <div class="endpoint-title">Get font group by ID</div>
+                <div class="endpoint-description">Retrieve a specific font group with its associated fonts</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Path Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">id</span>
+                        <span class="param-type">UUID (required)</span>
+                        <div class="param-desc">Font group identifier</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font group retrieved successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-404">404</span>
+                        <span class="response-description">Font group not found</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method put">PUT</span>
+                    <span class="endpoint-path">/font-groups/{id}</span>
+                </div>
+                <div class="endpoint-title">Update a font group</div>
+                <div class="endpoint-description">Update an existing font group with new fonts, metadata, or both</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Path Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">id</span>
+                        <span class="param-type">UUID (required)</span>
+                        <div class="param-desc">Font group identifier</div>
+                    </div>
+                </div>
+
+                <div class="request-body">
+                    <div class="request-body-title">Request Body:</div>
+                    <div class="content-type">multipart/form-data</div>
+                    <div class="parameter">
+                        <div class="param-name">name</div>
+                        <div class="param-type">string (optional, 1-100 chars)</div>
+                        <div class="param-desc">Font group name</div>
+                    </div>
+                    <div class="parameter">
+                        <div class="param-name">description</div>
+                        <div class="param-type">string (optional, max 500 chars)</div>
+                        <div class="param-desc">Description</div>
+                    </div>
+                    <div class="parameter">
+                        <div class="param-name">fontIds</div>
+                        <div class="param-type">array of UUIDs (1-10 items)</div>
+                        <div class="param-desc">Array of existing font IDs</div>
+                    </div>
+                    <div class="parameter">
+                        <div class="param-name">tags</div>
+                        <div class="param-type">array of strings (optional)</div>
+                        <div class="param-desc">Tags for categorization</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font group updated successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-400">400</span>
+                        <span class="response-description">Validation error</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-404">404</span>
+                        <span class="response-description">Font group not found</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint-path">/font-groups/{id}</span>
+                </div>
+                <div class="endpoint-title">Delete a font group</div>
+                <div class="endpoint-description">Delete a font group from the system</div>
+
+                <div class="parameters">
+                    <div class="parameters-title">Path Parameters:</div>
+                    <div class="parameter">
+                        <span class="param-name">id</span>
+                        <span class="param-type">UUID (required)</span>
+                        <div class="param-desc">Font group identifier</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font group deleted successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-404">404</span>
+                        <span class="response-description">Font group not found</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method delete">DELETE</span>
+                    <span class="endpoint-path">/font-groups/bulk-delete</span>
+                </div>
+                <div class="endpoint-title">Delete multiple font groups</div>
+                <div class="endpoint-description">Delete multiple font groups in a single request (max 50 groups)</div>
+
+                <div class="request-body">
+                    <div class="request-body-title">Request Body:</div>
+                    <div class="content-type">application/json</div>
+                    <div class="parameter">
+                        <div class="param-name">fontGroupIds</div>
+                        <div class="param-type">array of UUIDs (required, 1-50 items)</div>
+                        <div class="param-desc">Array of font group IDs to delete</div>
+                    </div>
+                </div>
+
+                <div class="responses">
+                    <div class="responses-title">Responses:</div>
+                    <div class="response">
+                        <span class="status-code status-200">200</span>
+                        <span class="response-description">Font groups deleted successfully</span>
+                    </div>
+                    <div class="response">
+                        <span class="status-code status-400">400</span>
+                        <span class="response-description">Validation error</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="schemas">
+        <div class="section-header">
+            <div class="section-title">Schemas</div>
+        </div>
+        <div class="section-content">
+            <div class="endpoint">
+                <div class="endpoint-title">ApiResponse</div>
+                <div class="endpoint-description">Base response structure for all API responses</div>
+                <div class="parameter">
+                    <span class="param-name">success</span>
+                    <span class="param-type">boolean (required)</span>
+                    <div class="param-desc">Indicates if the request was successful</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">message</span>
+                    <span class="param-type">string (required)</span>
+                    <div class="param-desc">Human-readable message about the operation</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">data</span>
+                    <span class="param-type">object (optional)</span>
+                    <div class="param-desc">Response data (varies by endpoint)</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">timestamp</span>
+                    <span class="param-type">string (required, date-time)</span>
+                    <div class="param-desc">Response timestamp</div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">ErrorResponse</div>
+                <div class="endpoint-description">Error response structure</div>
+                <div class="parameter">
+                    <span class="param-name">success</span>
+                    <span class="param-type">boolean (required, example: false)</span>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">message</span>
+                    <span class="param-type">string (required)</span>
+                    <div class="param-desc">Error message</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">error</span>
+                    <span class="param-type">string (optional)</span>
+                    <div class="param-desc">Additional error details</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">timestamp</span>
+                    <span class="param-type">string (required, date-time)</span>
+                    <div class="param-desc">Response timestamp</div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">Font</div>
+                <div class="endpoint-description">Font object structure</div>
+                <div class="parameter">
+                    <span class="param-name">id</span>
+                    <span class="param-type">string (required, uuid)</span>
+                    <div class="param-desc">Unique font identifier</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">filename</span>
+                    <span class="param-type">string (required)</span>
+                    <div class="param-desc">Generated filename on the server</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">originalName</span>
+                    <span class="param-type">string (required)</span>
+                    <div class="param-desc">Original filename when uploaded</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">path</span>
+                    <span class="param-type">string (required)</span>
+                    <div class="param-desc">File path on the server</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">fontFamily</span>
+                    <span class="param-type">string (required)</span>
+                    <div class="param-desc">Extracted font family name from TTF file</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">fontStyle</span>
+                    <span class="param-type">string (optional)</span>
+                    <div class="param-desc">Font style (normal, italic, bold, etc.)</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">isValid</span>
+                    <span class="param-type">boolean (required)</span>
+                    <div class="param-desc">Whether the TTF file is valid and parseable</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">uploadDate</span>
+                    <span class="param-type">string (required, date-time)</span>
+                    <div class="param-desc">When the font was uploaded</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">size</span>
+                    <span class="param-type">integer (required, minimum: 1)</span>
+                    <div class="param-desc">File size in bytes</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">checksum</span>
+                    <span class="param-type">string (optional)</span>
+                    <div class="param-desc">File checksum for integrity verification</div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">FontGroup</div>
+                <div class="endpoint-description">Font group object structure</div>
+                <div class="parameter">
+                    <span class="param-name">id</span>
+                    <span class="param-type">string (required, uuid)</span>
+                    <div class="param-desc">Unique font group identifier</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">name</span>
+                    <span class="param-type">string (required, minLength: 1, maxLength: 100)</span>
+                    <div class="param-desc">Font group name</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">description</span>
+                    <span class="param-type">string (optional, maxLength: 500)</span>
+                    <div class="param-desc">Optional description of the font group</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">fontIds</span>
+                    <span class="param-type">array of UUIDs (required, minItems: 1, maxItems: 10)</span>
+                    <div class="param-desc">Array of font IDs in this group</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">fontCount</span>
+                    <span class="param-type">integer (required, minimum: 1, maximum: 10)</span>
+                    <div class="param-desc">Number of fonts in the group</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">createdDate</span>
+                    <span class="param-type">string (required, date-time)</span>
+                    <div class="param-desc">When the font group was created</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">updatedDate</span>
+                    <span class="param-type">string (optional, date-time)</span>
+                    <div class="param-desc">When the font group was last updated</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">tags</span>
+                    <span class="param-type">array of strings (optional, maxLength: 50 per item)</span>
+                    <div class="param-desc">Optional tags for categorization</div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-title">BulkDeleteResult</div>
+                <div class="endpoint-description">Result structure for bulk delete operations</div>
+                <div class="parameter">
+                    <span class="param-name">deleted</span>
+                    <span class="param-type">array of UUIDs (required)</span>
+                    <div class="param-desc">IDs of successfully deleted items</div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">failed</span>
+                    <span class="param-type">array of objects (required)</span>
+                    <div class="param-desc">IDs and reasons for items that failed to delete</div>
+                    <div class="parameter" style="margin-left: 20px; margin-top: 5px;">
+                        <span class="param-name">id</span>
+                        <span class="param-type">string (uuid)</span>
+                        <div class="param-desc">ID of the item that failed to delete</div>
+                    </div>
+                    <div class="parameter" style="margin-left: 20px; margin-top: 5px;">
+                        <span class="param-name">reason</span>
+                        <span class="param-type">string</span>
+                        <div class="param-desc">Reason for failure</div>
+                    </div>
+                </div>
+                <div class="parameter">
+                    <span class="param-name">summary</span>
+                    <span class="param-type">object (required)</span>
+                    <div class="param-desc">Summary of the bulk operation</div>
+                    <div class="parameter" style="margin-left: 20px; margin-top: 5px;">
+                        <span class="param-name">total</span>
+                        <span class="param-type">integer</span>
+                        <div class="param-desc">Total items requested for deletion</div>
+                    </div>
+                    <div class="parameter" style="margin-left: 20px; margin-top: 5px;">
+                        <span class="param-name">deleted</span>
+                        <span class="param-type">integer</span>
+                        <div class="param-desc">Number of successfully deleted items</div>
+                    </div>
+                    <div class="parameter" style="margin-left: 20px; margin-top: 5px;">
+                        <span class="param-name">failed</span>
+                        <span class="param-type">integer</span>
+                        <div class="param-desc">Number of items that failed to delete</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
