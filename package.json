@@ -17,7 +17,7 @@
     "rimraf": "^5.0.0",
     "ts-node": "^10.9.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "cors": "^2.8.5",
